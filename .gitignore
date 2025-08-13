@@ -1,0 +1,19 @@
+# Node dependencies and build outputs
+node_modules/
+dist/
+
+# Logs
+*.log
+
+# Environment variables
+.env*
+
+# Operating system files
+.DS_Store
+
+# IDE settings
+.idea/
+.vscode/
+
+# Build output (Next.js or others)
+supabase/.next/
