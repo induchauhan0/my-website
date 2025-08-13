@@ -1,5 +1,5 @@
-// Contact Form Edge Function
-// Handles form submissions and sends emails to Bhavesh Goyal
+// Testimonial Submission Edge Function
+// Handles testimonial submissions and sends emails to Bhavesh Goyal
 
 Deno.serve(async (req) => {
   const corsHeaders = {
@@ -22,28 +22,39 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Parse request body
-    const requestData = await req.json();
-    const {
-      name,
-      email,
-      mobile,
-      company,
-      projectType,
-      budget,
-      timeline,
-      message
-    } = requestData;
-
-    // Validate required fields
-    if (!name || !email || !mobile || !message) {
-      throw new Error('Name, email, mobile number, and message are required fields');
+    // Parse form data (supports both JSON and multipart form data)
+    const contentType = req.headers.get('content-type') || '';
+    let formData: any = {};
+    
+    if (contentType.includes('multipart/form-data')) {
+      const formDataRequest = await req.formData();
+      for (const [key, value] of formDataRequest.entries()) {
+        formData[key] = value;
+      }
+    } else {
+      formData = await req.json();
     }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      throw new Error('Please provide a valid email address');
+    const {
+      name,
+      position,
+      company,
+      type,
+      testimonial,
+      video
+    } = formData;
+
+    // Validate required fields
+    if (!name || !type) {
+      throw new Error('Name and testimonial type are required fields');
+    }
+
+    if (type === 'text' && !testimonial) {
+      throw new Error('Testimonial content is required for text submissions');
+    }
+
+    if (type === 'video' && !video) {
+      throw new Error('Video file is required for video submissions');
     }
 
     // Get environment variables
@@ -55,7 +66,7 @@ Deno.serve(async (req) => {
     }
 
     // Create professional email content
-    const emailSubject = `New Project Inquiry from ${name} - ${projectType || 'General Inquiry'}`;
+    const emailSubject = `New ${type === 'video' ? 'Video' : 'Written'} Testimonial from ${name}`;
     
     const emailHtml = `
       <!DOCTYPE html>
@@ -72,13 +83,14 @@ Deno.serve(async (req) => {
           .value { background: white; padding: 15px; border-radius: 5px; border-left: 4px solid #00FF88; }
           .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
           .highlight { color: #00FF88; font-weight: bold; }
+          .testimonial-content { font-style: italic; max-height: 200px; overflow-y: auto; }
         </style>
       </head>
       <body>
         <div class="container">
           <div class="header">
-            <h1>🎯 New Project Inquiry</h1>
-            <p>Portfolio Contact Form Submission</p>
+            <h1>🎆 New Testimonial Submission</h1>
+            <p>Portfolio Testimonial Form</p>
           </div>
           
           <div class="content">
@@ -87,48 +99,36 @@ Deno.serve(async (req) => {
               <div class="value">${name}</div>
             </div>
             
+            ${position ? `
             <div class="field">
-              <div class="label">📧 Email Address:</div>
-              <div class="value"><a href="mailto:${email}">${email}</a></div>
+              <div class="label">💼 Position:</div>
+              <div class="value">${position}</div>
             </div>
-            
-            <div class="field">
-              <div class="label">📱 Mobile Number:</div>
-              <div class="value"><a href="tel:${mobile}">${mobile}</a></div>
-            </div>
+            ` : ''}
             
             ${company ? `
             <div class="field">
-              <div class="label">🏢 Company/Organization:</div>
+              <div class="label">🏢 Company:</div>
               <div class="value">${company}</div>
             </div>
             ` : ''}
             
-            ${projectType ? `
             <div class="field">
-              <div class="label">🎨 Project Type:</div>
-              <div class="value"><span class="highlight">${projectType}</span></div>
+              <div class="label">🎥 Submission Type:</div>
+              <div class="value"><span class="highlight">${type === 'video' ? 'Video Testimonial' : 'Written Testimonial'}</span></div>
             </div>
-            ` : ''}
             
-            ${budget ? `
+            ${type === 'text' ? `
             <div class="field">
-              <div class="label">💰 Budget Range:</div>
-              <div class="value">${budget}</div>
+              <div class="label">💬 Testimonial Content:</div>
+              <div class="value testimonial-content">${testimonial.replace(/\n/g, '<br>')}</div>
             </div>
-            ` : ''}
-            
-            ${timeline ? `
+            ` : `
             <div class="field">
-              <div class="label">⏰ Timeline:</div>
-              <div class="value">${timeline}</div>
+              <div class="label">🎥 Video Testimonial:</div>
+              <div class="value">Video file attached - please check the attachment or download from the testimonial system.</div>
             </div>
-            ` : ''}
-            
-            <div class="field">
-              <div class="label">💬 Project Details:</div>
-              <div class="value">${message.replace(/\n/g, '<br>')}</div>
-            </div>
+            `}
             
             <div class="field">
               <div class="label">📅 Received:</div>
@@ -145,8 +145,14 @@ Deno.serve(async (req) => {
           </div>
           
           <div class="footer">
-            <p>This inquiry was submitted through your portfolio website contact form.</p>
-            <p><strong>Recommended Response Time:</strong> Within 24 hours</p>
+            <p>This testimonial was submitted through your portfolio website testimonial form.</p>
+            <p><strong>Next Steps:</strong></p>
+            <ul style="text-align: left; max-width: 400px; margin: 0 auto;">
+              <li>Review the testimonial content</li>
+              <li>Contact the client if needed for clarification</li>
+              <li>Add approved testimonials to your portfolio</li>
+              <li>Send a thank you note to the client</li>
+            </ul>
           </div>
         </div>
       </body>
@@ -161,9 +167,9 @@ Deno.serve(async (req) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: 'Portfolio Contact <noreply@portfolio.bhaveshgoyal.com>',
+        from: 'Portfolio Testimonials <testimonials@portfolio.bhaveshgoyal.com>',
         to: [recipientEmail],
-        reply_to: email,
+        reply_to: formData.email || recipientEmail,
         subject: emailSubject,
         html: emailHtml
       })
@@ -176,82 +182,86 @@ Deno.serve(async (req) => {
     }
 
     const emailResult = await emailResponse.json();
-    console.log('Email sent successfully:', emailResult.id);
+    console.log('Testimonial email sent successfully:', emailResult.id);
 
-    // Send auto-reply to the client
-    const autoReplyHtml = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <style>
-          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; }
-          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background: linear-gradient(135deg, #010302, #0A1411); color: #00FF88; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-          .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; }
-          .highlight { color: #00FF88; font-weight: bold; }
-          .footer { text-align: center; margin-top: 20px; color: #666; font-size: 14px; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <h1>✅ Thank You, ${name}!</h1>
-            <p>Your message has been received</p>
+    // Send auto-reply to the client if email provided
+    if (formData.email) {
+      const autoReplyHtml = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #010302, #0A1411); color: #00FF88; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+            .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; }
+            .highlight { color: #00FF88; font-weight: bold; }
+            .footer { text-align: center; margin-top: 20px; color: #666; font-size: 14px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>✨ Thank You, ${name}!</h1>
+              <p>Your testimonial has been received</p>
+            </div>
+            
+            <div class="content">
+              <p>Hi ${name},</p>
+              
+              <p>Thank you so much for taking the time to share your experience working with me! Your <span class="highlight">${type === 'video' ? 'video testimonial' : 'written testimonial'}</span> means a lot and helps other potential clients understand the value of professional video editing and creative design services.</p>
+              
+              <p><strong>What happens next:</strong></p>
+              <ul>
+                <li>I'll review your testimonial within 24-48 hours</li>
+                <li>With your permission, I may feature it on my portfolio website</li>
+                <li>I'll reach out if I have any questions or need clarification</li>
+                <li>You'll receive a personal thank you note from me</li>
+              </ul>
+              
+              <p>Your feedback not only helps my business grow but also helps me continuously improve my services. I'm grateful for clients like you who take the time to share their experiences.</p>
+              
+              <p>If you have any additional projects or know someone who could benefit from professional video editing or graphic design services, I'm always here to help!</p>
+              
+              <p>Best regards,<br>
+              <strong>Bhavesh Goyal</strong><br>
+              Creative Video Editor & Graphics Designer<br>
+              📧 creativebhavesh.ds@gmail.com<br>
+              📱 +91 99751 99610<br>
+              📍 Mumbai, India</p>
+            </div>
+            
+            <div class="footer">
+              <p>This is an automated response. Please do not reply to this email.</p>
+              <p>For any questions, contact me directly at creativebhavesh.ds@gmail.com</p>
+            </div>
           </div>
-          
-          <div class="content">
-            <p>Hi ${name},</p>
-            
-            <p>Thank you for reaching out through my portfolio website! I've received your inquiry about <span class="highlight">${projectType || 'your project'}</span> and I'm excited to learn more about your vision.</p>
-            
-            <p><strong>What happens next:</strong></p>
-            <ul>
-              <li>I'll review your project details carefully</li>
-              <li>You'll receive a personal response within <span class="highlight">24 hours</span></li>
-              <li>We can schedule a call to discuss your project in detail</li>
-              <li>I'll provide a tailored proposal for your needs</li>
-            </ul>
-            
-            <p>In the meantime, feel free to explore more of my work on my portfolio or connect with me on social media for behind-the-scenes content and creative insights.</p>
-            
-            <p>Looking forward to potentially collaborating with you!</p>
-            
-            <p>Best regards,<br>
-            <strong>Bhavesh Goyal</strong><br>
-            Creative Video Editor & Graphics Designer<br>
-            📧 creativebhavesh.ds@gmail.com<br>
-            📍 Mumbai, India</p>
-          </div>
-          
-          <div class="footer">
-            <p>This is an automated response. Please do not reply to this email.</p>
-          </div>
-        </div>
-      </body>
-      </html>
-    `;
+        </body>
+        </html>
+      `;
 
-    // Send auto-reply
-    await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${resendApiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        from: 'Bhavesh Goyal <noreply@portfolio.bhaveshgoyal.com>',
-        to: [email],
-        subject: `Thank you for your inquiry, ${name}! 🎨`,
-        html: autoReplyHtml
-      })
-    });
+      // Send auto-reply
+      await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${resendApiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          from: 'Bhavesh Goyal <noreply@portfolio.bhaveshgoyal.com>',
+          to: [formData.email],
+          subject: `Thank you for your testimonial, ${name}! 🎆`,
+          html: autoReplyHtml
+        })
+      });
+    }
 
     // Return success response
     return new Response(JSON.stringify({
       data: {
         success: true,
-        message: 'Your message has been sent successfully! You should receive a confirmation email shortly.',
+        message: 'Your testimonial has been submitted successfully! Thank you for your feedback.',
         emailId: emailResult.id
       }
     }), {
@@ -259,12 +269,12 @@ Deno.serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('Contact form error:', error);
+    console.error('Testimonial submission error:', error);
 
     const errorResponse = {
       error: {
-        code: 'CONTACT_FORM_ERROR',
-        message: error.message || 'Failed to send message. Please try again or contact directly via email.'
+        code: 'TESTIMONIAL_SUBMISSION_ERROR',
+        message: error.message || 'Failed to submit testimonial. Please try again or contact directly via email.'
       }
     };
 
