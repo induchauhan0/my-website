@@ -73,7 +73,7 @@ const AboutSection: React.FC = () => {
             <div className="relative">
               <div className="glass-panel p-2">
                 <img
-                  src="/images/professional/creative_designer_modern_workspace_portrait.jpg"
+                  src="https://i.ibb.co/gZZQ660F/creative-designer-modern-workspace-portrait.webp"
                   alt="Bhavesh Goyal - Creative Video Editor and Graphics Designer"
                   className="w-full h-auto rounded-lg object-cover"
                   loading="lazy"
