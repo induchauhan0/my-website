@@ -58,8 +58,8 @@ const HeroSection: React.FC = () => {
           
           {/* Main Headline */}
           <h1 className="hero-title text-reveal mb-6">
-            Creative Video Editor & <br/> <br/>
-            <span className="neon-text">Graphics Designer</span>
+            Creative Video Editor & <br/>
+            <span className="neon-text font-semibold">3+ years</span>
           </h1>
           
           {/* Sub-headline */}
