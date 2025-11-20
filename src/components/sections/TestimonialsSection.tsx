@@ -151,7 +151,7 @@ const TestimonialsSection: React.FC = () => {
               {/* Author Info */}
               <div className="flex items-center gap-4">
                 <img
-                  src={testimonial.avatar}
+                  src="/images/professional/creative_designer_modern_workspace_portrait.jpg"
                   alt={testimonial.author}
                   className="w-12 h-12 rounded-full object-cover border-2 border-glass-border"
                   loading="lazy"
