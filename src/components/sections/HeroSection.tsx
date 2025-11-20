@@ -42,7 +42,7 @@ const HeroSection: React.FC = () => {
         ref={heroRef}
         className="absolute inset-0 hero-bg parallax-bg"
         style={{
-          backgroundImage: `url('/images/hero/futuristic_glassmorphism_neon_green_background.jpg')`,
+          backgroundImage: `url('https://ibb.co/mrsh7fNW')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat'
@@ -59,7 +59,7 @@ const HeroSection: React.FC = () => {
           {/* Main Headline */}
           <h1 className="hero-title text-reveal mb-6">
                  Creative Video Editor &
-            <span className="neon-text font-semibold">      Graphics Designer</span>
+            <span className="neon-text font-semibold">           Graphics Designer</span>
           </h1>
           
           {/* Sub-headline */}
