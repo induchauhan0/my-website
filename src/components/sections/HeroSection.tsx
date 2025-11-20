@@ -42,7 +42,7 @@ const HeroSection: React.FC = () => {
         ref={heroRef}
         className="absolute inset-0 hero-bg parallax-bg"
         style={{
-          backgroundImage: `url('https://i.ibb.co/8n3PV1YZ/futuristic-glassmorphism-neon-green-background.jpg')`,
+          backgroundImage: `url('https://i.ibb.co/LDtfyjWR/Bhavesh-Goyal-ds-Portfolio-Adance-Video-Editor-motion-Graphics-Designer.webp')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat'
